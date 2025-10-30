@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗣️ English Conversation Practice - AI Tutor</title>
+    <style>
+        body {
+            font-family: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="%23334155" stroke-width="1" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            z-index: -1;
+            pointer-events: none;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            height: calc(100% - 100px);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #60a5fa, #34d399, #fbbf24);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin: 0;
+            color: #cbd5e1;
+        }
+        .chat-container {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            height: 85%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(96, 165, 250, 0.5);
+            border-radius: 3px;
+        }
+        
+        .message {
+            margin-bottom: 16px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            line-height: 1.6;
+            position: relative;
+            animation: fadeInUp 0.3s ease;
+            max-width: 80%;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.user {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            margin-left: auto;
+            margin-right: 0;
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .message.user::before {
+            content: "👨‍💼";
+            position: absolute;
+            right: -35px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+        }
+        
+        .message.assistant {
+            background: linear-gradient(135deg, #10b981, #047857);
+            margin-right: auto;
+            margin-left: 0;
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .message.assistant::before {
+            content: "🤖";
+            position: absolute;
+            left: -35px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #ffffff;
+            border: none;
+            padding: 16px 32px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .tip-box {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            color: #fbbf24;
+            font-size: 14px;
+            text-align: center;
+        }
+        #audio-output {
+            display: none;
+        }
+        .icon-with-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            min-width: 180px;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .pulse-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            min-width: 180px;
+        }
+        .pulse-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            opacity: 0.2;
+            flex-shrink: 0;
+            transform: translateX(-0%) scale(var(--audio-level, 1));
+            transition: transform 0.1s ease;
+        }
+        /* Add styles for toast notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .toast.error {
+            background-color: #f44336;
+            color: white;
+        }
+        .toast.warning {
+            background-color: #ffd700;
+            color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Add toast element after body opening tag -->
+    <div id="error-toast" class="toast"></div>
+    <div class="container">
+        <div class="header">
+            <h1>🗣️ English Conversation Practice</h1>
+            <p>Practice speaking English with your AI conversation partner</p>
+        </div>
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+                <div class="message assistant">
+                    <strong>Welcome!</strong> I'm your English conversation partner. Click "Start Conversation" below and begin speaking in English. I'll help you practice and gently correct any mistakes. Let's have a great conversation! 😊
+                    <br><br>
+                    <strong>💡 Tips for better recognition:</strong>
+                    <br>• Speak clearly and at normal speed
+                    <br>• Try starting with simple phrases like "Hello" or "Hi there"
+                    <br>• Make sure you're in a quiet environment
+                    <br>• Speak directly into your microphone
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <button id="start-button">🎤 Start Conversation</button>
+            <div class="status-indicator" id="status" style="display: none;">Ready to chat!</div>
+        </div>
+        <div class="tip-box">
+            💡 <strong>Important:</strong> Speak in English, clearly and loudly enough for your microphone to pick up. Start with simple greetings like "Hello!" or "Hi there!" - if the system doesn't understand, try speaking louder or closer to your microphone.
+        </div>
+    </div>
+    <audio id="audio-output"></audio>
+
+    <script>
+        let peerConnection;
+        let webrtc_id;
+        const audioOutput = document.getElementById('audio-output');
+        const startButton = document.getElementById('start-button');
+        const chatMessages = document.getElementById('chat-messages');
+        let audioLevel = 0;
+        let animationFrame;
+        let audioContext, analyser, audioSource;
+        function updateButtonState() {
+            const button = document.getElementById('start-button');
+            const status = document.getElementById('status');
+            
+            if (peerConnection && (peerConnection.connectionState === 'connecting' || peerConnection.connectionState === 'new')) {
+                button.innerHTML = `
+                    <div class="icon-with-spinner">
+                        <div class="spinner"></div>
+                        <span>🔗 Connecting...</span>
+                    </div>
+                `;
+                status.style.display = 'block';
+                status.textContent = 'Connecting to AI tutor...';
+                status.style.background = 'rgba(251, 191, 36, 0.2)';
+                status.style.color = '#fbbf24';
+                status.style.borderColor = 'rgba(251, 191, 36, 0.3)';
+            } else if (peerConnection && peerConnection.connectionState === 'connected') {
+                button.innerHTML = `
+                    <div class="pulse-container">
+                        <div class="pulse-circle"></div>
+                        <span>🛑 Stop Conversation</span>
+                    </div>
+                `;
+                status.style.display = 'block';
+                status.textContent = '🟢 Connected - Speak now!';
+                status.style.background = 'rgba(34, 197, 94, 0.2)';
+                status.style.color = '#22c55e';
+                status.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+            } else {
+                button.innerHTML = '🎤 Start Conversation';
+                status.style.display = 'none';
+            }
+        }
+        function setupAudioVisualization(stream) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            audioSource = audioContext.createMediaStreamSource(stream);
+            audioSource.connect(analyser);
+            analyser.fftSize = 64;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            function updateAudioLevel() {
+                analyser.getByteFrequencyData(dataArray);
+                const average = Array.from(dataArray).reduce((a, b) => a + b, 0) / dataArray.length;
+                audioLevel = average / 255;
+                // Update CSS variable instead of rebuilding the button
+                const pulseCircle = document.querySelector('.pulse-circle');
+                if (pulseCircle) {
+                    pulseCircle.style.setProperty('--audio-level', 1 + audioLevel);
+                }
+                animationFrame = requestAnimationFrame(updateAudioLevel);
+            }
+            updateAudioLevel();
+        }
+        function showError(message) {
+            const toast = document.getElementById('error-toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            // Hide toast after 5 seconds
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 5000);
+        }
+        async function setupWebRTC() {
+            isConnecting = true;
+            const config = __RTC_CONFIGURATION__;
+            peerConnection = new RTCPeerConnection(config);
+            const timeoutId = setTimeout(() => {
+                const toast = document.getElementById('error-toast');
+                toast.textContent = "Connection is taking longer than usual. Are you on a VPN?";
+                toast.className = 'toast warning';
+                toast.style.display = 'block';
+                // Hide warning after 5 seconds
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 5000);
+            }, 5000);
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
+                setupAudioVisualization(stream);
+                stream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, stream);
+                });
+                peerConnection.addEventListener('track', (evt) => {
+                    if (audioOutput.srcObject !== evt.streams[0]) {
+                        audioOutput.srcObject = evt.streams[0];
+                        audioOutput.play();
+                    }
+                });
+                const dataChannel = peerConnection.createDataChannel('text');
+                dataChannel.onmessage = (event) => {
+                    const eventJson = JSON.parse(event.data);
+                    if (eventJson.type === "error") {
+                        showError(eventJson.message);
+                    }
+                };
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                await new Promise((resolve) => {
+                    if (peerConnection.iceGatheringState === "complete") {
+                        resolve();
+                    } else {
+                        const checkState = () => {
+                            if (peerConnection.iceGatheringState === "complete") {
+                                peerConnection.removeEventListener("icegatheringstatechange", checkState);
+                                resolve();
+                            }
+                        };
+                        peerConnection.addEventListener("icegatheringstatechange", checkState);
+                    }
+                });
+                peerConnection.addEventListener('connectionstatechange', () => {
+                    console.log('connectionstatechange', peerConnection.connectionState);
+                    if (peerConnection.connectionState === 'connected') {
+                        clearTimeout(timeoutId);
+                        const toast = document.getElementById('error-toast');
+                        toast.style.display = 'none';
+                    }
+                    updateButtonState();
+                });
+                webrtc_id = Math.random().toString(36).substring(7);
+                const response = await fetch('/webrtc/offer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sdp: peerConnection.localDescription.sdp,
+                        type: peerConnection.localDescription.type,
+                        webrtc_id: webrtc_id
+                    })
+                });
+                const serverResponse = await response.json();
+                if (serverResponse.status === 'failed') {
+                    showError(serverResponse.meta.error === 'concurrency_limit_reached'
+                        ? `Too many connections. Maximum limit is ${serverResponse.meta.limit}`
+                        : serverResponse.meta.error);
+                    stop();
+                    return;
+                }
+                await peerConnection.setRemoteDescription(serverResponse);
+                const eventSource = new EventSource('/outputs?webrtc_id=' + webrtc_id);
+                eventSource.addEventListener("output", (event) => {
+                    const eventJson = JSON.parse(event.data);
+                    addMessage("assistant", eventJson.content, eventJson.user_input, eventJson.errors_detected);
+                });
+            } catch (err) {
+                clearTimeout(timeoutId);
+                console.error('Error setting up WebRTC:', err);
+                showError('Failed to establish connection. Please try again.');
+                stop();
+            }
+        }
+        function addMessage(role, content, userInput = null, errors = null) {
+            // Add user message if provided
+            if (userInput && role === 'assistant') {
+                const userMessageDiv = document.createElement('div');
+                userMessageDiv.classList.add('message', 'user');
+                userMessageDiv.textContent = userInput;
+                chatMessages.appendChild(userMessageDiv);
+            }
+            
+            // Add assistant message
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', role);
+            
+            // Format content with potential corrections
+            if (errors && errors.length > 0) {
+                const correctionHtml = errors.map(error => 
+                    `<small style="opacity: 0.8; font-style: italic;">💡 "${error.found}" → "${error.suggestion}"</small>`
+                ).join('<br>');
+                messageDiv.innerHTML = content + '<br><br>' + correctionHtml;
+            } else {
+            messageDiv.textContent = content;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Add a subtle animation
+            messageDiv.style.opacity = '0';
+            messageDiv.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                messageDiv.style.transition = 'all 0.3s ease';
+                messageDiv.style.opacity = '1';
+                messageDiv.style.transform = 'translateY(0)';
+            }, 10);
+        }
+        function stop() {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+                analyser = null;
+                audioSource = null;
+            }
+            if (peerConnection) {
+                if (peerConnection.getTransceivers) {
+                    peerConnection.getTransceivers().forEach(transceiver => {
+                        if (transceiver.stop) {
+                            transceiver.stop();
+                        }
+                    });
+                }
+                if (peerConnection.getSenders) {
+                    peerConnection.getSenders().forEach(sender => {
+                        if (sender.track && sender.track.stop) sender.track.stop();
+                    });
+                }
+                console.log('closing');
+                peerConnection.close();
+            }
+            updateButtonState();
+            audioLevel = 0;
+        }
+        startButton.addEventListener('click', () => {
+            console.log('clicked');
+            console.log(peerConnection, peerConnection?.connectionState);
+            if (!peerConnection || peerConnection.connectionState !== 'connected') {
+                setupWebRTC();
+            } else {
+                console.log('stopping');
+                stop();
+            }
+        });
+    </script>
+</body>
+
+</html>
